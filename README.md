@@ -9,3 +9,5 @@ Tideman's Alternative Method is a ranked-choice voting system developed by Nicol
 
 ![Screenshot 2024-04-11 183623](https://github.com/vivekvohra/tideman/assets/112391833/daea8d63-174e-4dbf-bb71-c5f6c9522445)
 
+# Thus the winner is Alice
+Alice is, in this election, the so-called “Condorcet winner” of the election: the person who would have won any head-to-head matchup against another candidate. If the election had been just Alice and Bob, or just Alice and Charlie, Alice would have won.
