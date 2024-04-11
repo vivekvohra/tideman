@@ -4,5 +4,8 @@ Tideman's Alternative Method is a ranked-choice voting system developed by Nicol
 
 ## Assume 9 people vote in respective way
 <img width="831" alt="condorcet_1" src="https://github.com/vivekvohra/tideman/assets/112391833/7ded3ee3-8393-496f-ba73-ce2bcd7f12b6">
+
 ## Thus the terminal window:
-![Screenshot 2024-04-11 183623](https://github.com/vivekvohra/tideman/assets/112391833/92c8d42b-e4d6-485a-a6ee-58399f8f82ba)
+
+![Screenshot 2024-04-11 183623](https://github.com/vivekvohra/tideman/assets/112391833/daea8d63-174e-4dbf-bb71-c5f6c9522445)
+
