@@ -11,3 +11,18 @@ Tideman's Alternative Method is a ranked-choice voting system developed by Nicol
 
 ### Therefore; the winner is Alice!!
 Alice is, in this election, the so-called “Condorcet winner” of the election: the person who would have won any head-to-head matchup against another candidate. If the election had been just Alice and Bob, or just Alice and Charlie, Alice would have won.
+
+## Repository Structure
+
+The repository is organized as follows:
+
+```
+C-vs-Cpp-Implementation/
+│
+├── README.md           # Overview of the project, explanation of C vs C++ implementation
+├── .gitignore          # Specifies files to be ignored by Git
+│
+├── main.c              # Implementation of the code in C
+└── main.cpp            # Same implementation in C++, highlighting differences if any
+
+```
