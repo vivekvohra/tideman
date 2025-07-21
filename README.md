@@ -1,28 +1,71 @@
-## Tideman electoral system
+## 🗳️ Tideman Electoral System
 
-Tideman's Alternative Method is a ranked-choice voting system developed by Nicolaus Tideman which selects a single winner using votes that express preferences.In a ranked-choice system, voters can vote for more than one candidate. Instead of just voting for their top choice, they can rank the candidates in order of preference.We have to simulate a Tideman election.
+Tideman's Alternative Method is a **ranked-choice voting system** developed by Nicolaus Tideman. It selects a **single winner** using ballots where voters rank candidates in order of preference. The algorithm constructs a directed graph based on pairwise victories and locks in the strongest preferences while avoiding cycles.
 
-## Assume 9 people vote in respective way
+This repository contains an **object-oriented, benchmarked, and file-driven C++ implementation** of the Tideman algorithm.
+
+---
+
+## ⚙️ Features of This Implementation
+
+- 🔁 Input from CSV files with thousands to millions of votes
+- ⏱️ `chrono`-based benchmarking for performance measurement
+- 🧱 Object-oriented structure using C++17 (TidemanElection, VoteParser, Benchmark)
+- 🧾 Exception handling for bad inputs or file issues
+- ✅ Efficient for real-world scenarios with small candidate count (≤9)
+
+---
+
+## 📥 Sample Input (1 Million Votes)
+
+The program was tested on a randomly generated CSV file with **1,000,000 votes** and **3 candidates**: `Alice`, `Bob`, and `Charlie`.
+
+Each vote ranked candidates uniquely. Example format:
+
+```csv
+VoterID,Alice,Bob,Charlie
+1,1,2,3
+2,2,1,3
+3,1,3,2
+... (up to 1,000,000 rows)
+```
+
+We use 1 million votes, each ranked in patterns **similar to the example below**:
+
 <img width="831" alt="condorcet_1" src="https://github.com/vivekvohra/tideman/assets/112391833/7ded3ee3-8393-496f-ba73-ce2bcd7f12b6">
 
-## Thus the terminal window:
+---
 
-![Screenshot 2024-04-11 183623](https://github.com/vivekvohra/tideman/assets/112391833/daea8d63-174e-4dbf-bb71-c5f6c9522445)
+## 💻 Sample Output (Benchmark Results)
 
-### Therefore; the winner is Alice!!
-Alice is, in this election, the so-called “Condorcet winner” of the election: the person who would have won any head-to-head matchup against another candidate. If the election had been just Alice and Bob, or just Alice and Charlie, Alice would have won.
-
-## Repository Structure
-
-The repository is organized as follows:
-
+```text
+Recording Preferences took 32109 us
+Adding Pairs took 0 us
+Locking Pairs took 0 us
+Winner: Charlie
+Getting Winner took 999 us
 ```
-C-vs-Cpp-Implementation/
-│
-├── README.md           # Overview of the project, explanation of C vs C++ implementation
-├── .gitignore          # Specifies files to be ignored by Git
-│
-├── main.c              # Implementation of the code in C
-└── main.cpp            # Same implementation in C++, highlighting differences if any
 
+✅ The program processed 1 million ballots in just milliseconds, proving the practicality of the O(n³) algorithm when `n` (candidates) is small.
+
+---
+
+## 🧠 Winner Logic
+
+In this run, the algorithm determined that **Charlie** was the winner. This depends on the majority preferences between each pair of candidates.
+
+
+---
+
+## 🧪 How to Run
+
+### 🛠️ Compile
+```bash
+g++ -std=c++17 -O2 tideman_oop.cpp -o tideman
 ```
+
+### ▶️ Execute with CSV Input
+```bash
+./tideman --file=ballots_1M_cpp.csv
+```
+
