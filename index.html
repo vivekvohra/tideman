@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Tideman Election Service</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg:#0b1020;
+      --card:#141a2a;
+      --muted:#7f8db2;
+      --text:#e7ecff;
+      --accent:#4f8cff;
+      --success:#1ec28b;
+      --error:#ff5c7a;
+      --border:#22304a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin:0; padding:2rem;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      color:var(--text); background:radial-gradient(1200px 600px at 20% -10%, #1a2240 0%, #0b1020 60%);
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+    }
+    .container { width:min(900px, 95vw); }
+    h1 { margin:0 0 1rem; font-weight:700; letter-spacing:.3px; }
+    p.sub { color:var(--muted); margin:.25rem 0 1.25rem; }
+
+    .card {
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid var(--border);
+      border-radius:16px; padding:1.25rem 1.25rem 1rem; box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    .row { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; }
+    .api {
+      display:flex; gap:.5rem; align-items:center; margin-bottom:1rem;
+    }
+    .api input {
+      flex:1; padding:.6rem .8rem; font:inherit; color:var(--text);
+      background:#0f1526; border:1px solid var(--border); border-radius:10px;
+    }
+    .btn {
+      appearance:none; border:1px solid #3557a2; background:linear-gradient(180deg, #4f8cff, #3d6fde);
+      color:#fff; padding:.65rem 1rem; border-radius:10px; font-weight:600; cursor:pointer;
+      transition:transform .04s ease, filter .2s ease; box-shadow:0 8px 18px rgba(79,140,255,.25);
+    }
+    .btn:active { transform:translateY(1px); }
+    .btn.secondary { background:#0f1526; border:1px solid var(--border); color:var(--text); box-shadow:none; }
+    .muted { color:var(--muted); font-size:.9rem; }
+
+    .drop {
+      flex:1;
+      border:2px dashed #2a3a66; border-radius:14px; padding:1rem; text-align:center;
+      background:#0f1526; color:var(--muted);
+    }
+    .drop.drag { border-color:var(--accent); color:#bcd3ff; }
+    .drop input { display:none; }
+    .small { font-size:.85rem; }
+
+    .winner {
+      margin-top:1rem; display:flex; align-items:center; gap:.6rem;
+      padding:.8rem 1rem; border:1px solid #1b3a2e; background:#0f1d19; border-radius:12px;
+    }
+    .pill {
+      display:inline-block; padding:.25rem .55rem; font-size:.75rem; border-radius:999px;
+      background:rgba(30,194,139,.1); color:var(--success); border:1px solid rgba(30,194,139,.25);
+    }
+    .name { font-size:1.4rem; font-weight:800; color:var(--success); letter-spacing:.4px; }
+
+    details {
+      margin-top:1rem; border:1px solid var(--border); border-radius:12px; overflow:hidden;
+      background:#0f1526;
+    }
+    details > summary {
+      list-style:none; padding: .9rem 1rem; cursor:pointer; user-select:none;
+      color:#c7d4ff; border-bottom:1px solid var(--border);
+    }
+    details[open] > summary { border-bottom-color:#1a2744; }
+    pre {
+      margin:0; padding:1rem; white-space:pre-wrap; color:#d9e2ff;
+      max-height:40vh; overflow:auto;
+    }
+
+    .error {
+      margin-top:.8rem; color:#ffd3db; background:#33151e; border:1px solid #5c2436;
+      padding:.6rem .8rem; border-radius:10px;
+    }
+
+    .spinner {
+      width:18px; height:18px; border:3px solid #7792c9; border-top-color:transparent; border-radius:50%;
+      display:inline-block; animation:spin .8s linear infinite; vertical-align:-4px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Tideman Election Service</h1>
+    <p class="sub">Upload a CSV of ballots (CS50-style header) and get the winner from your C++ backend.</p>
+
+    <div class="card">
+      <div class="api">
+        <span class="muted small">API URL</span>
+        <input id="apiUrl" value="http://127.0.0.1:5000/api/tideman" />
+        <button class="btn secondary" id="pingBtn">Check</button>
+      </div>
+
+      <div class="row">
+        <label class="drop" id="dropArea">
+          <strong>Drag & drop</strong> your CSV here<br/>
+          <span class="small">or</span><br/>
+          <input type="file" id="csvFile" accept=".csv" />
+          <button class="btn secondary" id="pickBtn" type="button" style="margin-top:.6rem;">Choose file</button>
+          <div id="fileName" class="muted small" style="margin-top:.4rem;">No file selected</div>
+        </label>
+        <div style="display:flex; flex-direction:column; gap:.6rem; min-width:180px;">
+          <button class="btn" id="submitBtn">Submit</button>
+          <button class="btn secondary" id="sampleBtn">Use sample CSV</button>
+          <div class="muted small">Max ~50MB (adjust server as needed)</div>
+        </div>
+      </div>
+
+      <div id="status" class="muted small" style="margin-top:.8rem;"></div>
+
+      <div class="winner" id="winnerBox" style="display:none;">
+        <span class="pill">Winner</span>
+        <span class="name" id="winnerName">—</span>
+      </div>
+
+      <div id="errBox" class="error" style="display:none;"></div>
+
+      <details id="respWrap" style="margin-top:1rem;">
+        <summary>Raw API response</summary>
+        <pre id="output">{}</pre>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    const apiUrlInput = document.getElementById('apiUrl');
+    const pickBtn = document.getElementById('pickBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const pingBtn = document.getElementById('pingBtn');
+    const sampleBtn = document.getElementById('sampleBtn');
+    const fileInput = document.getElementById('csvFile');
+    const fileName = document.getElementById('fileName');
+    const dropArea = document.getElementById('dropArea');
+    const output = document.getElementById('output');
+    const statusEl = document.getElementById('status');
+    const winnerBox = document.getElementById('winnerBox');
+    const winnerName = document.getElementById('winnerName');
+    const errBox = document.getElementById('errBox');
+    const respWrap = document.getElementById('respWrap');
+
+    let selectedFile = null;
+
+    function setStatus(msg, spin=false) {
+      statusEl.innerHTML = spin ? `<span class="spinner"></span> ${msg}` : msg;
+    }
+    function showError(msg) {
+      errBox.style.display = 'block';
+      errBox.textContent = msg;
+    }
+    function clearError() {
+      errBox.style.display = 'none';
+      errBox.textContent = '';
+    }
+    function showWinner(name) {
+      winnerBox.style.display = 'flex';
+      winnerName.textContent = name || '—';
+    }
+    function resetWinner() {
+      winnerBox.style.display = 'none';
+      winnerName.textContent = '—';
+    }
+
+    // File picker
+    pickBtn.onclick = () => fileInput.click();
+    fileInput.onchange = () => {
+      selectedFile = fileInput.files[0] || null;
+      fileName.textContent = selectedFile ? selectedFile.name : 'No file selected';
+    };
+
+    // Drag & drop
+    ;['dragenter','dragover'].forEach(ev => dropArea.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation(); dropArea.classList.add('drag');
+    }));
+    ;['dragleave','drop'].forEach(ev => dropArea.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation(); dropArea.classList.remove('drag');
+    }));
+    dropArea.addEventListener('drop', e => {
+      const f = e.dataTransfer.files?.[0];
+      if (f) {
+        selectedFile = f;
+        fileInput.files = e.dataTransfer.files;
+        fileName.textContent = f.name;
+      }
+    });
+
+    // Sample CSV
+    const sampleCSV = `VoterID,Alice,Bob,Charlie
+1,1,2,3
+2,2,1,3
+3,3,1,2`;
+    sampleBtn.onclick = async () => {
+      resetWinner(); clearError(); setStatus('Submitting sample…', true);
+      await submitCSV(new Blob([sampleCSV], {type:'text/csv'}), 'sample.csv');
+    };
+
+    // Ping /healthz
+    pingBtn.onclick = async () => {
+      clearError(); setStatus('Checking API…', true);
+      try {
+        const r = await fetch(apiUrlInput.value.replace(/\/$/, '').replace(/\/api\/tideman$/, '') + '/healthz');
+        setStatus(r.ok ? 'API is reachable ✅' : `API check failed (HTTP ${r.status})`);
+      } catch (e) {
+        setStatus('API not reachable ❌');
+      }
+    };
+
+    submitBtn.onclick = async () => {
+      clearError(); resetWinner();
+      if (!selectedFile) { showError('Please choose a CSV file.'); return; }
+      await submitCSV(selectedFile, selectedFile.name);
+    };
+
+    async function submitCSV(file, name) {
+      setStatus(`Uploading ${name}…`, true);
+      const fd = new FormData();
+      fd.append('file', file, name || 'ballots.csv');
+
+      try {
+        const resp = await fetch(apiUrlInput.value, { method: 'POST', body: fd });
+        const text = await resp.text();
+
+        let data = null;
+        try { data = JSON.parse(text); } catch {}
+
+        // Show raw response
+        output.textContent = data ? JSON.stringify(data, null, 2) : (text || '(empty)');
+
+        if (!resp.ok || !data) {
+          showError(`HTTP ${resp.status}: ${data?.error || 'Request failed'}`);
+          setStatus(''); return;
+        }
+        if (data.error) {
+          showError(data.error); setStatus(''); return;
+        }
+
+        showWinner(data.winner);
+        setStatus('Done ✅');
+        if (!respWrap.open) respWrap.open = true;
+      } catch (err) {
+        showError('Network error: ' + (err?.message || err));
+        setStatus('');
+      }
+    }
+  </script>
+</body>
+</html>
