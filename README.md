@@ -61,7 +61,7 @@ In this run, the algorithm determined that **Charlie** was the winner. This depe
 
 ### 🛠️ Compile
 ```bash
-g++ -std=c++17 -O2 tideman_oop.cpp -o tideman
+g++ -std=c++17 -O2 tideman.cpp -o tideman
 ```
 
 ### ▶️ Execute with CSV Input
