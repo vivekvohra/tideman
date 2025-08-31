@@ -74,4 +74,4 @@ def home():
 
 if __name__ == "__main__":
     # Force localhost:5000 so your tests/HTML match
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
