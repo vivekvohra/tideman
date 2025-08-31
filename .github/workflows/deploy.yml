@@ -1,0 +1,50 @@
+name: CI/CD to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository }}
+      IMAGE_LATEST: ghcr.io/${{ github.repository }}:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build
+        run: docker build -t $IMAGE_NAME:${{ github.sha }} -t $IMAGE_LATEST .
+
+      - name: Push
+        run: |
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_LATEST
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            mkdir -p ${{ secrets.EC2_APP_PATH }}
+            cd ${{ secrets.EC2_APP_PATH }}
+            docker pull $IMAGE_LATEST
+            docker compose pull || true
+            docker compose up -d
+            docker image prune -f
