@@ -1,27 +1,34 @@
-# Use a lightweight Python image
 FROM python:3.12-slim
 
-# Ensure Python behaves well in containers
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Install system deps (for building wheels)
+# build tools for python wheels + g++ for C++
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
-    build-essential \
+    build-essential g++ \
  && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Install Python dependencies
+# Python deps
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# App source
 COPY . .
 
-# Expose Flask's port
+# --- C++ build step ---
+# If there are multiple .cpp files, this will compile them all into one binary
+# named 'tideman'. If none exist, it will just skip.
+RUN if ls *.cpp >/dev/null 2>&1; then \
+      echo "Building C++: *.cpp -> /app/tideman" && \
+      g++ -O2 -std=c++17 -o /app/tideman *.cpp; \
+    else \
+      echo "No .cpp files found, skipping C++ build"; \
+    fi
+
+# Expose internal Flask/Gunicorn port
 EXPOSE 5000
 
-# Run Gunicorn serving Flask's app object from app.py
+# Run Flask via Gunicorn
 CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
