@@ -2,18 +2,19 @@
 
 Tideman’s **Ranked Pairs method** (developed by Nicolaus Tideman) is a **ranked-choice voting algorithm** that selects a single winner by constructing a directed graph of pairwise victories and locking in the strongest preferences while **avoiding cycles**.
 
-This repository contains an **object-oriented, benchmarked, file-driven C++17 implementation**, wrapped with a **Flask API** and a **minimal HTML front end** for interactive demos.
+This repository provides an **object-oriented, benchmarked, file-driven C++17 implementation**, wrapped by a **Flask API** and a **minimal HTML front end**. It’s now **Dockerized** (multi-stage) and **EC2-ready** with **Gunicorn** for a production-style run.
 
 
 
 ##  Features
 
-*  **CSV input** with support for thousands to millions of ballots
-*  **High-resolution benchmarking** using `<chrono>` for performance profiling
-*  **Object-oriented design** (`TidemanElection`, `VoteParser`, `Benchmark`)
-*  **Robust error handling** (bad input, duplicates, file issues)
-*  **Efficient in practice**: runs on millions of ballots with ≤9 candidates in milliseconds
-*  **Web service wrapper**: C++ executable exposed via Flask API + HTML page
+* **CSV input** with support from thousands up to **millions of ballots**
+* **High-resolution benchmarking** using `<chrono>`
+* **Object-oriented design** (`TidemanElection`, `VoteParser`, `Benchmark`)
+* **Robust error handling** (bad input, duplicates, file issues)
+* **Efficient in practice**: millions of ballots with ≤9 candidates in milliseconds
+* **Web service wrapper**: C++ executable exposed via **Flask API** + **HTML**
+* **Containerized**: Multi-stage **Dockerfile**, **Gunicorn** server, **EC2-ready** (port 80 → 5000)
 
 
 
@@ -101,11 +102,39 @@ Then open `index.html` (via VS Code Live Server or browser) and upload ballots.
 
 
 
-##  Tech Stack
 
-* **Core**: C++17, STL, DFS cycle detection, chrono benchmarking
-* **API**: Python Flask, subprocess IPC, JSON responses
-* **UI**: HTML, fetch API, simple file upload
+## Deploy on AWS EC2 (Ubuntu)
+
+1. **Launch EC2** (Ubuntu), open **Security Group** inbound rules:
+
+   * **22** (SSH)
+   * **80** (HTTP)
+
+2. **Install Docker + Git**:
+
+```bash
+sudo apt update
+sudo apt install -y docker.io git
+```
+
+3. **Clone & build**:
+
+```bash
+git clone <your-repo-url>
+cd <repo>
+sudo docker build -t tideman:latest .
+```
+
+4. **Run container**:
+
+```bash
+sudo docker run -d --rm -p 80:5000 --name tideman tideman:latest
+```
+
+5. **Test**:
+
+   * On EC2: `curl http://localhost/healthz`
+   * From your browser: `http://<EC2-Public-IP>` (port 80 → 5000)
 
 ---
 
